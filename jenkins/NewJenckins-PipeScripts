@@ -1,0 +1,53 @@
+pipeline{
+    agent any
+    stagaes{
+        stage ('Checkout-SCM'){
+            steps{
+                git 'https://github.com/vikashbond/samplejavaapp.git'
+            }
+        }
+        stage ('Compile-Code'){
+            steps{
+                sh '/opt/maven/bin/mvn compile'
+            }
+        }
+        stage ('Code-review'){
+            steps{
+                sh '/opt/maven/bin/mvn -P metrics pmd:pmd'
+            }
+            post{
+                success{
+                    recordIssues sourceCodeRetention: 'LAST_BUILD', tools: [pmdParser(pattern: '**/pmd.xml')]
+                }
+                failde{
+                    echo 'Send an email'
+                }
+            }
+            
+        }
+        stage ('Unit-test'){
+            steps{
+                sh '/opt/maven/bin/mvn test'
+            }
+            
+        }
+        stage ('Code-coverage'){
+            steps{
+                sh '/opt/maven/bin/mvn verify'
+            }
+            post{
+                success{
+                    jacoco changeBuildStatus: true, runAlways: true, skipCopyOfSrcFiles: true
+                }
+            }
+            
+        }
+        stage ('Package'){
+            steps{
+                sh '/opt/maven/bin/mvn package'
+            }
+            
+        }
+        
+    }
+}
