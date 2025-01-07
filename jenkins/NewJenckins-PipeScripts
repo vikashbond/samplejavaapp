@@ -19,7 +19,7 @@ pipeline{
                 success{
                     recordIssues sourceCodeRetention: 'LAST_BUILD', tools: [pmdParser(pattern: '**/pmd.xml')]
                 }
-                failde{
+                failed{
                     echo 'Send an email'
                 }
             }
